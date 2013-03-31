@@ -5,14 +5,12 @@ import java.net.URLEncoder;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.text.ClipboardManager;
+//import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
-import android.text.ClipboardManager;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -33,31 +31,46 @@ public class QRActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_qr);
+        
         ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this).build();
         imgLoader = ImageLoader.getInstance();
         imgLoader.init(config);
+        
         qrImg = (ImageView)findViewById(R.id.qrImg);
         qrTxt = (TextView)findViewById(R.id.qrTxt);
         
 
         
 		clipboard = (ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
-        CharSequence clipTxt = clipboard.getText();
+		
+		
+		
+        /*
+         * clipboard.getText() is now deprecated. But I am going to use it here
+         * because the new way of doing the same thing only works on API lvl 11+
+         * Since I want this application to support API lvl 4+ we have to use
+         * the old method.
+         */
+		CharSequence clipTxt = clipboard.getText();
+		
+		//This is the new, non-deprecated way of getting text from the Clipboard.
+		//CharSequence clipTxt = clipboard.getPrimaryClip().getItemAt(0).getText();
         
         
-        
+        //If the clipboard has text, and it is more than 0 characters.
         if((null != clipTxt) && (clipTxt.length() > 0)){
         	try {
         		qrTxt.setText(clipTxt);
         		copiedStr = clipTxt.toString();
 				fullUrl += URLEncoder.encode(copiedStr, "UTF-8");
 				imgLoader.displayImage(fullUrl, qrImg);
+				
 			} catch (UnsupportedEncodingException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
         	
-        }else{
+        }else{ //If no text display a dialog.
         	AlertDialog.Builder builder = new AlertDialog.Builder(this);
         	
         	builder.setTitle("QRMaker")
@@ -77,24 +90,5 @@ public class QRActivity extends Activity {
         	AlertDialog diag = builder.create();
         	diag.show();
         }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.activity_qr, menu);
-        
-        return true;
-    }
-    
-    @Override
-    public boolean onOptionsItemSelected(MenuItem itm){
-    	if(itm.getItemId() == R.id.menu_settings){
-    		clipboard.setText("");
-    		
-    	}
-    	return true;
-    }
-
-    
+    } 
 }
